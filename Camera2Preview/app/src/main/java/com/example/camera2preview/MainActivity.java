@@ -11,10 +11,15 @@ import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.CaptureResult;
+import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.v4.app.ActivityCompat;
@@ -22,14 +27,21 @@ import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -136,13 +148,25 @@ public class MainActivity extends Activity {
                     }
                 });
                 //此ImageReader用于拍照所需
-                //setupImageReader();
+                setupImageReader();
                 mCameraId = cameraId;
                 break;
             }
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    private void setupImageReader() {
+        //2代表ImageReader中最多可以获取两帧图像流
+        mImageReader = ImageReader.newInstance(mCaptureSize.getWidth(), mCaptureSize.getHeight(),
+                ImageFormat.JPEG, 2);
+        mImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
+            @Override
+            public void onImageAvailable(ImageReader reader) {
+                mCameraHandler.post(new imageSaver(reader.acquireNextImage()));
+            }
+        }, mCameraHandler);
     }
 
     //选择sizeMap中大于并且最接近width和height的size
@@ -209,7 +233,7 @@ public class MainActivity extends Activity {
         try {
             mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mPreviewRequestBuilder.addTarget(previewSurface);
-            mCameraDevice.createCaptureSession(Arrays.asList(previewSurface), new CameraCaptureSession.StateCallback() {
+            mCameraDevice.createCaptureSession(Arrays.asList(previewSurface,mImageReader.getSurface()), new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(CameraCaptureSession session) {
                     try {
@@ -232,6 +256,61 @@ public class MainActivity extends Activity {
         }
     }
 
+    //take photo
+    public void takePicture(View view) {
+        lockFocus();
+    }
+
+    private void lockFocus() {
+        try {
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+            mCameraCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private CameraCaptureSession.CaptureCallback mCaptureCallback = new CameraCaptureSession.CaptureCallback() {
+        @Override
+        public void onCaptureProgressed(CameraCaptureSession session, CaptureRequest request, CaptureResult partialResult) {
+        }
+
+        @Override
+        public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
+            capture();
+        }
+    };
+
+    private void capture() {
+        try {
+            final CaptureRequest.Builder mCaptureBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+            int rotation = getWindowManager().getDefaultDisplay().getRotation();
+            mCaptureBuilder.addTarget(mImageReader.getSurface());
+            mCaptureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATION.get(rotation));
+            CameraCaptureSession.CaptureCallback CaptureCallback = new CameraCaptureSession.CaptureCallback() {
+                @Override
+                public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
+                    Toast.makeText(getApplicationContext(), "Image Saved!", Toast.LENGTH_SHORT).show();
+                    unLockFocus();
+                }
+            };
+            mCameraCaptureSession.stopRepeating();
+            mCameraCaptureSession.capture(mCaptureBuilder.build(), CaptureCallback, null);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void unLockFocus() {
+        try {
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+            //mCameraCaptureSession.capture(mCaptureRequestBuilder.build(), null, mCameraHandler);
+            mCameraCaptureSession.setRepeatingRequest(mPreviewRequest, null, mCameraHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -248,6 +327,44 @@ public class MainActivity extends Activity {
         if (mImageReader != null) {
             mImageReader.close();
             mImageReader = null;
+        }
+    }
+
+    public static class imageSaver implements Runnable {
+
+        private Image mImage;
+
+        public imageSaver(Image image) {
+            mImage = image;
+        }
+
+        @Override
+        public void run() {
+            ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
+            byte[] data = new byte[buffer.remaining()];
+            buffer.get(data);
+            String path = Environment.getExternalStorageDirectory() + "/DCIM/CameraV2/";
+            File mImageFile = new File(path);
+            if (!mImageFile.exists()) {
+                mImageFile.mkdir();
+            }
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String fileName = path + "IMG_" + timeStamp + ".jpg";
+            FileOutputStream fos = null;
+            try {
+                fos = new FileOutputStream(fileName);
+                fos.write(data, 0, data.length);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (fos != null) {
+                    try {
+                        fos.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
     }
 }

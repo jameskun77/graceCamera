@@ -23,9 +23,9 @@ public class TriangleProgram extends ShaderProgram {
 
         super(context,vertexPath,fragmentPath);
 
-        aPositionLocation = glGetAttribLocation(mProgram,"aPosition");
+        aPositionLocation = glGetAttribLocation(mProgram,aPosition);
         glEnableVertexAttribArray(aPositionLocation);
-        uMVPMatrixLocation = glGetUniformLocation(mProgram,"uMVPMatrix");
+        uMVPMatrixLocation = glGetUniformLocation(mProgram,uMVPMatrix);
     }
 
     public void setUniform(float[] matrix){

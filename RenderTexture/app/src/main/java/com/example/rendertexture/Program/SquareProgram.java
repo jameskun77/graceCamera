@@ -30,13 +30,13 @@ public class SquareProgram extends ShaderProgram {
 
         super(context,vertexPath,fragmentPath);
 
-        aPositionLocation = glGetAttribLocation(mProgram,"aPosition");
+        aPositionLocation = glGetAttribLocation(mProgram,aPosition);
         glEnableVertexAttribArray(aPositionLocation);
-        aTexCoordLocation = glGetAttribLocation(mProgram,"aTextureCoordinates");
+        aTexCoordLocation = glGetAttribLocation(mProgram,aTextureCoordinates);
         glEnableVertexAttribArray(aTexCoordLocation);
 
-        uMVPMatrixLocation = glGetUniformLocation(mProgram,"uMVPMatrix");
-        uTextureUnitLocation = glGetUniformLocation(mProgram,"uTextureUnit");
+        uMVPMatrixLocation = glGetUniformLocation(mProgram,uMVPMatrix);
+        uTextureUnitLocation = glGetUniformLocation(mProgram,uTextureUnit);
     }
 
     public void setUniforms(float[] matrix, int textureId) {

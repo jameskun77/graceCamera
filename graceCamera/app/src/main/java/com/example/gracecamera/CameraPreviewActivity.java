@@ -44,9 +44,11 @@ public class CameraPreviewActivity extends Activity implements SeekBar.OnSeekBar
 
         setContentView(R.layout.activity_main);
         mGLSurfaceView = (GLSurfaceView)findViewById(R.id.glsurfaceview) ;
-        ((SeekBar) findViewById(R.id.seekBar)).setOnSeekBarChangeListener(this);
-        findViewById(R.id.button_choose_filter).setOnClickListener(this);
-        findViewById(R.id.button_capture).setOnClickListener(this);
+        ((SeekBar) findViewById(R.id.seekBar1)).setOnSeekBarChangeListener(this);
+        ((SeekBar) findViewById(R.id.seekBar2)).setOnSeekBarChangeListener(this);
+        ((SeekBar) findViewById(R.id.seekBar3)).setOnSeekBarChangeListener(this);
+        //findViewById(R.id.button_choose_filter).setOnClickListener(this);
+        //findViewById(R.id.button_capture).setOnClickListener(this);
 
         //check system support es2.0
         final ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -98,7 +100,24 @@ public class CameraPreviewActivity extends Activity implements SeekBar.OnSeekBar
     @Override
     public void onProgressChanged(final  SeekBar seekBar,final int progress,
                                   final boolean fromUser){
-        Log.i(TAG,"onProgressChanged");
+        //Log.i(TAG,"onProgressChanged");
+        switch (seekBar.getId()){
+            case R.id.seekBar1:
+            {
+                Log.i(TAG,"bar1 onProgressChanged");
+            }
+            break;
+            case R.id.seekBar2:
+            {
+                Log.i(TAG,"bar2 onProgressChanged");
+            }
+            break;
+            case R.id.seekBar3:
+            {
+                Log.i(TAG,"bar3 onProgressChanged");
+            }
+            break;
+        }
     }
 
     @Override
@@ -111,17 +130,17 @@ public class CameraPreviewActivity extends Activity implements SeekBar.OnSeekBar
 
     @Override
     public void onClick(final View v){
-        switch (v.getId()){
-            case R.id.button_choose_filter:
-            {
-                Log.i(TAG,"button_choose_filter");
-            }
-            break;
-            case R.id.button_capture:
-            {
-                Log.i(TAG,"button_capture");
-            }
-            break;
-        }
+//        switch (v.getId()){
+//            case R.id.button_choose_filter:
+//            {
+//                Log.i(TAG,"button_choose_filter");
+//            }
+//            break;
+//            case R.id.button_capture:
+//            {
+//                Log.i(TAG,"button_capture");
+//            }
+//            break;
+//        }
     }
 }

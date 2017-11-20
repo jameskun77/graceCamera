@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">graceCamera</string>
+    <string name="beauty_param1">param1</string>
+    <string name="beauty_param2">param2</string>
+    <string name="beauty_param3">param3</string>
 </resources>

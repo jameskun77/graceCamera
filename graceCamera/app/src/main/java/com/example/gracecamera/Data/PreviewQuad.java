@@ -1,6 +1,6 @@
 package com.example.gracecamera.Data;
 
-import com.example.gracecamera.Program.PreviewProgram;
+import com.example.gracecamera.Program.ShaderProgram;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -49,7 +49,7 @@ public class PreviewQuad {
         drawListBuffer.position(0);
     }
 
-    public void draw(PreviewProgram squareProgram){
+    public void draw(ShaderProgram squareProgram){
 
         vertexBuffer.position(0);
         glVertexAttribPointer(squareProgram.getPositionAttributeLocation(),3,

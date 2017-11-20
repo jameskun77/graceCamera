@@ -1,6 +1,6 @@
 package com.example.gracecamera.Data;
 
-import com.example.gracecamera.Program.WhiteBlackProgram;
+import com.example.gracecamera.Program.ShaderProgram;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -14,10 +14,10 @@ import static android.opengl.GLES20.glDrawElements;
 import static android.opengl.GLES20.glVertexAttribPointer;
 
 /**
- * Created by 123 on 2017/11/19.
+ * Created by Jameskun on 2017/11/20.
  */
 
-public class WhiteBlackEffect {
+public class EffectFilter {
 
     private final FloatBuffer vertexBuffer;
     private final ShortBuffer drawListBuffer;
@@ -26,14 +26,14 @@ public class WhiteBlackEffect {
     static float squareCoords[] = {
             -1.0f,  1.0f, 0.0f, 0.0f,1.0f,
             -1.0f, -1.0f, 0.0f, 0.0f,0.0f,
-             1.0f, -1.0f, 0.0f, 1.0f,0.0f,
-             1.0f,  1.0f, 0.0f, 1.0f,1.0f};
+            1.0f, -1.0f, 0.0f, 1.0f,0.0f,
+            1.0f,  1.0f, 0.0f, 1.0f,1.0f};
 
     private final short drawOrder[] = { 0, 1, 2, 0, 2, 3 };
 
     private final int vertexStride = COORDS_PER_VERTEX * 4;
 
-    public WhiteBlackEffect(){
+    public EffectFilter(){
 
         ByteBuffer bb = ByteBuffer.allocateDirect(squareCoords.length * 4);
         bb.order(ByteOrder.nativeOrder());
@@ -49,7 +49,7 @@ public class WhiteBlackEffect {
         drawListBuffer.position(0);
     }
 
-    public void draw(WhiteBlackProgram squareProgram){
+    public void draw(ShaderProgram squareProgram){
 
         vertexBuffer.position(0);
         glVertexAttribPointer(squareProgram.getPositionAttributeLocation(),3,

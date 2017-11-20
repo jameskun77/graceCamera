@@ -7,8 +7,9 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
 
+import com.example.gracecamera.Data.EffectFilter;
 import com.example.gracecamera.Data.PreviewQuad;
-import com.example.gracecamera.Data.WhiteBlackEffect;
+import com.example.gracecamera.Program.GammaProgram;
 import com.example.gracecamera.Program.PreviewProgram;
 import com.example.gracecamera.Program.WhiteBlackProgram;
 import com.example.gracecamera.Util.TextureHelper;
@@ -63,8 +64,9 @@ public class Camera2Render implements GLSurfaceView.Renderer {
     private PreviewQuad mPreviewQuad;
     private PreviewProgram mPreviewProgram;
 
-    private WhiteBlackEffect mWhiteBlackEffect;
+    private EffectFilter mEffectFilter;
     private WhiteBlackProgram mWhiteBlackProgram;
+    private GammaProgram mGammaProgram;
 
     private int[] mFrameBuffer = new int[1];
     private int[] mTexture = new int[1];
@@ -83,8 +85,10 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         mPreviewQuad = new PreviewQuad();
         mPreviewProgram = new PreviewProgram(mContex,"previewVertexShader.glsl","previewFragmentShader.glsl");
 
-        mWhiteBlackEffect = new WhiteBlackEffect();
+        //mWhiteBlackEffect = new WhiteBlackEffect();
+        mEffectFilter = new EffectFilter();
         mWhiteBlackProgram = new WhiteBlackProgram(mContex,"blackWhiteEffectVS.glsl","blackWhiteEffectFS.glsl");
+        mGammaProgram = new GammaProgram(mContex,"gammaVS.glsl","gammaFS.glsl");
     }
 
     @Override
@@ -141,7 +145,8 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        drawEffect();
+        //drawWhiteBlack();
+        drawGammea();
     }
 
     private void drawPreview(){
@@ -150,10 +155,16 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         mPreviewQuad.draw(mPreviewProgram);
     }
 
-    private void drawEffect(){
+    private void drawWhiteBlack(){
         mWhiteBlackProgram.useProgram();
         mWhiteBlackProgram.setUniforms(mMVPMatrix,mTexture[0]);
-        mWhiteBlackEffect.draw(mWhiteBlackProgram);
+        mEffectFilter.draw(mWhiteBlackProgram);
+    }
+
+    private void drawGammea(){
+        mGammaProgram.useProgram();
+        mGammaProgram.setUniforms(mMVPMatrix,mTexture[0],2.58f);
+        mEffectFilter.draw(mGammaProgram);
     }
 
     private boolean initSurfaceTexture() {

@@ -2,22 +2,31 @@ package com.example.gracecamera;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.content.Context;
+import android.content.pm.ConfigurationInfo;
 import android.content.pm.PackageManager;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.View;
+import android.widget.SeekBar;
+import android.widget.Toast;
 
 /**
  * Created by 123 on 2017/11/19.
  */
 
-public class CameraPreviewActivity extends Activity {
+public class CameraPreviewActivity extends Activity implements SeekBar.OnSeekBarChangeListener, View.OnClickListener  {
 
     private static final String TAG = "Activity";
 
-    private Camera2View mCamera2View;
+    private GLSurfaceView mGLSurfaceView;
+    private Camera2Render mCamera2Render;
+
     private CameraV2 mCamera;
 
     @Override
@@ -33,35 +42,86 @@ public class CameraPreviewActivity extends Activity {
                     new String[]{Manifest.permission.CAMERA}, 10);
         }
 
-        mCamera2View = new Camera2View(this);
-        DisplayMetrics dm = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(dm);
-        mCamera = new CameraV2(this);
-        mCamera.setupCamera(dm.widthPixels,dm.heightPixels);
+        setContentView(R.layout.activity_main);
+        mGLSurfaceView = (GLSurfaceView)findViewById(R.id.glsurfaceview) ;
+        ((SeekBar) findViewById(R.id.seekBar)).setOnSeekBarChangeListener(this);
+        findViewById(R.id.button_choose_filter).setOnClickListener(this);
+        findViewById(R.id.button_capture).setOnClickListener(this);
 
-        if(!mCamera.openCamera()){
-            Log.e(TAG,"mCamera.openCamera fail");
+        //check system support es2.0
+        final ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        final ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
+        int supportEsVersion = configurationInfo.reqGlEsVersion;
+        final boolean supportEs2 = supportEsVersion >= 0x20000;
+
+        if(supportEs2){
+            DisplayMetrics dm = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(dm);
+            mCamera = new CameraV2(this);
+            mCamera.setupCamera(dm.widthPixels,dm.heightPixels);
+
+            if(!mCamera.openCamera()){
+                Log.e(TAG,"mCamera.openCamera fail");
+                return;
+            }
+
+            mGLSurfaceView.setEGLContextClientVersion(2);
+            mCamera2Render = new Camera2Render();
+            mCamera2Render.init(mGLSurfaceView,mCamera,CameraPreviewActivity.this);
+
+            mGLSurfaceView.setRenderer(mCamera2Render);
+        }
+        else {
+            Toast.makeText(this,"This device does not support OpenGL ES 2.0.",
+                    Toast.LENGTH_LONG).show();
             return;
         }
-
-        mCamera2View.init(mCamera,CameraPreviewActivity.this);
-        setContentView(mCamera2View);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mCamera2View.onResume();
+        mGLSurfaceView.onResume();
     }
 
     protected void onPause(){
         super.onPause();
-        mCamera2View.onPause();
+        mGLSurfaceView.onPause();
     }
 
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    public void onProgressChanged(final  SeekBar seekBar,final int progress,
+                                  final boolean fromUser){
+        Log.i(TAG,"onProgressChanged");
+    }
+
+    @Override
+    public void onStartTrackingTouch(final SeekBar seekBar) {
+    }
+
+    @Override
+    public void onStopTrackingTouch(final SeekBar seekBar) {
+    }
+
+    @Override
+    public void onClick(final View v){
+        switch (v.getId()){
+            case R.id.button_choose_filter:
+            {
+                Log.i(TAG,"button_choose_filter");
+            }
+            break;
+            case R.id.button_capture:
+            {
+                Log.i(TAG,"button_capture");
+            }
+            break;
+        }
     }
 }

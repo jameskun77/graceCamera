@@ -49,7 +49,7 @@ public class Camera2Render implements GLSurfaceView.Renderer {
     private static final String TAG = "Camera2Render";
 
     private Context mContex;
-    Camera2View mCamera2View;
+    GLSurfaceView mCamera2View;
     CameraV2 mCameraV2;
 
     private boolean bIsPreviewStarted = false;
@@ -69,9 +69,9 @@ public class Camera2Render implements GLSurfaceView.Renderer {
     private GammaProgram mGammaProgram;
 
     private int[] mFrameBuffer = new int[1];
-    private int[] mTexture = new int[1];
+    private int[] mFrameTexture = new int[1];
 
-    public void init(Camera2View camera2View,CameraV2 cameraV2,Context context){
+    public void init(GLSurfaceView camera2View,CameraV2 cameraV2,Context context){
         mContex = context;
         mCamera2View = camera2View;
         mCameraV2 = cameraV2;
@@ -85,7 +85,6 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         mPreviewQuad = new PreviewQuad();
         mPreviewProgram = new PreviewProgram(mContex,"previewVertexShader.glsl","previewFragmentShader.glsl");
 
-        //mWhiteBlackEffect = new WhiteBlackEffect();
         mEffectFilter = new EffectFilter();
         mWhiteBlackProgram = new WhiteBlackProgram(mContex,"blackWhiteEffectVS.glsl","blackWhiteEffectFS.glsl");
         mGammaProgram = new GammaProgram(mContex,"gammaVS.glsl","gammaFS.glsl");
@@ -102,14 +101,14 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         glGenFramebuffers(1,mFrameBuffer,0);
         glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer[0]);
 
-        glGenTextures(1,mTexture,0);
-        glBindTexture(GL_TEXTURE_2D, mTexture[0]);
+        glGenTextures(1,mFrameTexture,0);
+        glBindTexture(GL_TEXTURE_2D, mFrameTexture[0]);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, null);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        GLES20.glFramebufferTexture2D(GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTexture[0], 0);
+        GLES20.glFramebufferTexture2D(GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFrameTexture[0], 0);
 
         if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         {
@@ -145,8 +144,8 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        //drawWhiteBlack();
-        drawGammea();
+        drawWhiteBlack();
+        //drawGammea();
     }
 
     private void drawPreview(){
@@ -157,13 +156,13 @@ public class Camera2Render implements GLSurfaceView.Renderer {
 
     private void drawWhiteBlack(){
         mWhiteBlackProgram.useProgram();
-        mWhiteBlackProgram.setUniforms(mMVPMatrix,mTexture[0]);
+        mWhiteBlackProgram.setUniforms(mMVPMatrix,mFrameTexture[0]);
         mEffectFilter.draw(mWhiteBlackProgram);
     }
 
     private void drawGammea(){
         mGammaProgram.useProgram();
-        mGammaProgram.setUniforms(mMVPMatrix,mTexture[0],2.58f);
+        mGammaProgram.setUniforms(mMVPMatrix,mFrameTexture[0],2.58f);
         mEffectFilter.draw(mGammaProgram);
     }
 

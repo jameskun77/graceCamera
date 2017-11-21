@@ -58,8 +58,17 @@ public class EffectFilter {
         vertexBuffer.position(3);
         glVertexAttribPointer(squareProgram.getTexCoordAttributeLocation(),2,
                 GL_FLOAT,false,vertexStride,vertexBuffer);
+    }
+
+    public void drawES3()
+    {
+        //use es3.0
+        vertexBuffer.position(0);
+        glVertexAttribPointer(0,3,GL_FLOAT,false,vertexStride,vertexBuffer);
+
+        vertexBuffer.position(3);
+        glVertexAttribPointer(1,2,GL_FLOAT,false,vertexStride,vertexBuffer);
 
         glDrawElements(GL_TRIANGLES, drawOrder.length, GL_UNSIGNED_SHORT, drawListBuffer);
-
     }
 }

@@ -10,6 +10,7 @@ import android.util.Log;
 import com.example.gracecamera.Data.EffectFilter;
 import com.example.gracecamera.Data.PreviewQuad;
 import com.example.gracecamera.Program.GammaProgram;
+import com.example.gracecamera.Program.GammaProgramES3;
 import com.example.gracecamera.Program.PreviewProgram;
 import com.example.gracecamera.Program.WhiteBlackProgram;
 import com.example.gracecamera.Util.TextureHelper;
@@ -67,9 +68,11 @@ public class Camera2Render implements GLSurfaceView.Renderer {
     private EffectFilter mEffectFilter;
     private WhiteBlackProgram mWhiteBlackProgram;
     private GammaProgram mGammaProgram;
+    private GammaProgramES3 mGammaProgramES3;
 
     private int[] mFrameBuffer = new int[1];
     private int[] mFrameTexture = new int[1];
+
 
     public void init(GLSurfaceView camera2View,CameraV2 cameraV2,Context context){
         mContex = context;
@@ -88,6 +91,8 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         mEffectFilter = new EffectFilter();
         mWhiteBlackProgram = new WhiteBlackProgram(mContex,"blackWhiteEffectVS.glsl","blackWhiteEffectFS.glsl");
         mGammaProgram = new GammaProgram(mContex,"gammaVS.glsl","gammaFS.glsl");
+
+        mGammaProgramES3 = new GammaProgramES3(mContex,"gammaVSes3.0.glsl","gammaFSes3.0.glsl");
     }
 
     @Override
@@ -98,24 +103,7 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
 
         //frame buffer config
-        glGenFramebuffers(1,mFrameBuffer,0);
-        glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer[0]);
-
-        glGenTextures(1,mFrameTexture,0);
-        glBindTexture(GL_TEXTURE_2D, mFrameTexture[0]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, null);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        GLES20.glFramebufferTexture2D(GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFrameTexture[0], 0);
-
-        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        {
-            Log.e(TAG,"Frame buffer config fail.");
-        }
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        configFrameBuffer(width,height);
     }
 
     @Override
@@ -144,8 +132,8 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        drawWhiteBlack();
-        //drawGammea();
+        //drawWhiteBlack();
+        drawGammaES3();
     }
 
     private void drawPreview(){
@@ -160,10 +148,16 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         mEffectFilter.draw(mWhiteBlackProgram);
     }
 
-    private void drawGammea(){
+    private void drawGamma(){
         mGammaProgram.useProgram();
         mGammaProgram.setUniforms(mMVPMatrix,mFrameTexture[0],2.58f);
         mEffectFilter.draw(mGammaProgram);
+    }
+
+    private void drawGammaES3(){
+        mGammaProgramES3.useProgram();
+        mGammaProgramES3.setUniforms(mMVPMatrix,mFrameTexture[0],2.58f);
+        mEffectFilter.drawES3();
     }
 
     private boolean initSurfaceTexture() {
@@ -184,4 +178,24 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         return true;
     }
 
+    private void configFrameBuffer(int w,int h){
+        glGenFramebuffers(1,mFrameBuffer,0);
+        glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer[0]);
+
+        glGenTextures(1,mFrameTexture,0);
+        glBindTexture(GL_TEXTURE_2D, mFrameTexture[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, null);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        GLES20.glFramebufferTexture2D(GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFrameTexture[0], 0);
+
+        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        {
+            Log.e(TAG,"Frame buffer config fail.");
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
 }

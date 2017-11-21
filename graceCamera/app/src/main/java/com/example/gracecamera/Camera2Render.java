@@ -2,7 +2,6 @@ package com.example.gracecamera;
 
 import android.content.Context;
 import android.graphics.SurfaceTexture;
-import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
@@ -11,7 +10,9 @@ import com.example.gracecamera.Data.EffectFilter;
 import com.example.gracecamera.Data.PreviewQuad;
 import com.example.gracecamera.Program.GammaProgram;
 import com.example.gracecamera.Program.GammaProgramES3;
+import com.example.gracecamera.Program.MRTProgram;
 import com.example.gracecamera.Program.PreviewProgram;
+import com.example.gracecamera.Program.TestMRTProgram;
 import com.example.gracecamera.Program.WhiteBlackProgram;
 import com.example.gracecamera.Util.TextureHelper;
 
@@ -19,6 +20,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import static android.opengl.GLES20.GL_CLAMP_TO_EDGE;
+import static android.opengl.GLES20.GL_COLOR_ATTACHMENT0;
 import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
 import static android.opengl.GLES20.GL_FRAMEBUFFER;
 import static android.opengl.GLES20.GL_FRAMEBUFFER_COMPLETE;
@@ -35,11 +37,14 @@ import static android.opengl.GLES20.glBindTexture;
 import static android.opengl.GLES20.glCheckFramebufferStatus;
 import static android.opengl.GLES20.glClear;
 import static android.opengl.GLES20.glClearColor;
+import static android.opengl.GLES20.glFramebufferTexture2D;
 import static android.opengl.GLES20.glGenFramebuffers;
 import static android.opengl.GLES20.glGenTextures;
 import static android.opengl.GLES20.glTexImage2D;
 import static android.opengl.GLES20.glTexParameteri;
 import static android.opengl.GLES20.glViewport;
+import static android.opengl.GLES30.GL_COLOR_ATTACHMENT1;
+import static android.opengl.GLES30.glDrawBuffers;
 
 /**
  * Created by 123 on 2017/11/19.
@@ -69,10 +74,16 @@ public class Camera2Render implements GLSurfaceView.Renderer {
     private WhiteBlackProgram mWhiteBlackProgram;
     private GammaProgram mGammaProgram;
     private GammaProgramES3 mGammaProgramES3;
+    private MRTProgram mMRTProgram;
+    private TestMRTProgram mTestMRTProgram;
 
+    //frame buffer
     private int[] mFrameBuffer = new int[1];
     private int[] mFrameTexture = new int[1];
 
+    //multiple render target
+    private int[] mFrameBufferMRT = new int[1];
+    private int[] mFrameTextureMRT = new int[2];
 
     public void init(GLSurfaceView camera2View,CameraV2 cameraV2,Context context){
         mContex = context;
@@ -93,6 +104,8 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         mGammaProgram = new GammaProgram(mContex,"gammaVS.glsl","gammaFS.glsl");
 
         mGammaProgramES3 = new GammaProgramES3(mContex,"gammaVSes3.0.glsl","gammaFSes3.0.glsl");
+        mMRTProgram = new MRTProgram(mContex,"MRTVS.glsl","MRTFS.glsl");
+        mTestMRTProgram = new TestMRTProgram(mContex,"noEffectVS.glsl","noEffectFS.glsl");
     }
 
     @Override
@@ -104,6 +117,7 @@ public class Camera2Render implements GLSurfaceView.Renderer {
 
         //frame buffer config
         configFrameBuffer(width,height);
+        configFrameBufferMRT(width,height);
     }
 
     @Override
@@ -126,14 +140,22 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
         drawPreview();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        //draw MRT
+        glBindFramebuffer(GL_FRAMEBUFFER,mFrameBufferMRT[0]);
+        glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        drawMRT();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         //draw to window
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         //drawWhiteBlack();
-        drawGammaES3();
+        //drawGammaES3();
+        drawTestMRT();
     }
 
     private void drawPreview(){
@@ -152,6 +174,18 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         mGammaProgram.useProgram();
         mGammaProgram.setUniforms(mMVPMatrix,mFrameTexture[0],2.58f);
         mEffectFilter.draw(mGammaProgram);
+    }
+
+    private void drawMRT(){
+        mMRTProgram.useProgram();
+        mMRTProgram.setUniforms(mMVPMatrix,mFrameTexture[0],2.58f);
+        mEffectFilter.drawES3();
+    }
+
+    private void drawTestMRT(){
+        mTestMRTProgram.useProgram();
+        mTestMRTProgram.setUniforms(mFrameTextureMRT[1]);
+        mEffectFilter.drawES3();
     }
 
     private void drawGammaES3(){
@@ -189,11 +223,40 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        GLES20.glFramebufferTexture2D(GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFrameTexture[0], 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFrameTexture[0], 0);
 
         if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         {
             Log.e(TAG,"Frame buffer config fail.");
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    private void configFrameBufferMRT(int w,int h){
+        glGenFramebuffers(1,mFrameBufferMRT,0);
+        glBindFramebuffer(GL_FRAMEBUFFER,mFrameBufferMRT[0]);
+
+        glGenTextures(2,mFrameTextureMRT,0);
+        for (int i = 0; i < 2; i++){
+
+            glBindTexture(GL_TEXTURE_2D, mFrameTextureMRT[i]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, null);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, mFrameTextureMRT[i], 0);
+        }
+
+        int[] DrawBuffers = new int[2];
+        DrawBuffers[0] = GL_COLOR_ATTACHMENT0;
+        DrawBuffers[1] = GL_COLOR_ATTACHMENT1;
+        glDrawBuffers(2,DrawBuffers,0);
+
+        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        {
+            Log.e(TAG,"Frame buffer MRT config fail.");
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

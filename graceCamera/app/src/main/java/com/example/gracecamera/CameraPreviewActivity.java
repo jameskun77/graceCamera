@@ -105,16 +105,19 @@ public class CameraPreviewActivity extends Activity implements SeekBar.OnSeekBar
             case R.id.seekBar1:
             {
                 Log.i(TAG,"bar1 onProgressChanged");
+                mCamera2Render.setWhiteParam(progress);
             }
             break;
             case R.id.seekBar2:
             {
                 Log.i(TAG,"bar2 onProgressChanged");
+                mCamera2Render.setYuHuaParam(progress);
             }
             break;
             case R.id.seekBar3:
             {
                 Log.i(TAG,"bar3 onProgressChanged");
+                mCamera2Render.setSharpParam(progress);
             }
             break;
         }

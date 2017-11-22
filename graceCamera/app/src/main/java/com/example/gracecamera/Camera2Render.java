@@ -85,6 +85,11 @@ public class Camera2Render implements GLSurfaceView.Renderer {
     private int[] mFrameBufferMRT = new int[1];
     private int[] mFrameTextureMRT = new int[2];
 
+    //set var from activity seekbar
+    private float mWhiten;
+    private float mYuhua;
+    private float mSharp;
+
     public void init(GLSurfaceView camera2View,CameraV2 cameraV2,Context context){
         mContex = context;
         mCamera2View = camera2View;
@@ -93,7 +98,6 @@ public class Camera2Render implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
 
         mTextureId = TextureHelper.CreateTextureObject();
         mPreviewQuad = new PreviewQuad();
@@ -260,5 +264,17 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    public void setWhiteParam(float val){
+        mWhiten = val;
+    }
+
+    public void setYuHuaParam(float val){
+        mYuhua = val;
+    }
+
+    public void setSharpParam(float val){
+        mSharp = val;
     }
 }

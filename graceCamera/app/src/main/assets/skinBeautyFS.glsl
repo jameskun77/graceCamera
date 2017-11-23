@@ -9,20 +9,20 @@ in vec2 oTextureCoordinates;
 uniform sampler2D uTextureUnit;
 uniform float width;
 uniform float height;
-uniform float step;
+uniform float steps;
 uniform float radius;
 
 void main()
 {
     float uBoxHeight = radius / height;
-    float uYStep = step / height;
+    float uYStep = steps / height;
     vec4 sum = vec4(0.0, 0.0, 0.0, 0.0);
     vec4 sumII = vec4(0.0, 0.0, 0.0, 0.0);
     float halfH = uBoxHeight / 2.0;
     int num = 0;
     for (float j = -halfH; j < halfH; j += uYStep)
     {
-        vec4 pixel = texture(uTextureUnit, oTextureCoordinates + vec2(0, j), 1 / width, 1 / height);
+        vec4 pixel = texture(uTextureUnit, oTextureCoordinates + vec2(0, j));
 
         pixel.a = 1.0;
         float skinVal = 0.0;

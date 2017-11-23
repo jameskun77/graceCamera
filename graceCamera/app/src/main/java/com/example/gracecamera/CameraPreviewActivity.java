@@ -104,20 +104,23 @@ public class CameraPreviewActivity extends Activity implements SeekBar.OnSeekBar
         switch (seekBar.getId()){
             case R.id.seekBar1:
             {
-                Log.i(TAG,"bar1 onProgressChanged");
-                mCamera2Render.setWhiteParam(progress);
+                Log.i(TAG,"bar1 onProgressChanged" + progress);
+                float white = -1.0f + (progress + 19)/30.0f;
+                mCamera2Render.setWhiteParam(white );
             }
             break;
             case R.id.seekBar2:
             {
-                Log.i(TAG,"bar2 onProgressChanged");
-                mCamera2Render.setYuHuaParam(progress);
+                Log.i(TAG,"bar2 onProgressChanged" + progress);
+                float yuhua = 1.01f + (progress + 19)/40.0f;
+                mCamera2Render.setYuHuaParam(yuhua);
             }
             break;
             case R.id.seekBar3:
             {
-                Log.i(TAG,"bar3 onProgressChanged");
-                mCamera2Render.setSharpParam(progress);
+                Log.i(TAG,"bar3 onProgressChanged" + progress);
+                float sharp = 0.05f + (float)(progress + 19) / 100.0f * 0.60f;
+                mCamera2Render.setSharpParam(sharp);
             }
             break;
         }

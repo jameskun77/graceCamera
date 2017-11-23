@@ -12,8 +12,11 @@ import com.example.gracecamera.Program.GammaProgram;
 import com.example.gracecamera.Program.GammaProgramES3;
 import com.example.gracecamera.Program.MRTProgram;
 import com.example.gracecamera.Program.PreviewProgram;
+import com.example.gracecamera.Program.SharpProgram;
+import com.example.gracecamera.Program.SkinProgram;
 import com.example.gracecamera.Program.TestMRTProgram;
 import com.example.gracecamera.Program.WhiteBlackProgram;
+import com.example.gracecamera.Program.WhiteProgram;
 import com.example.gracecamera.Util.TextureHelper;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -76,19 +79,29 @@ public class Camera2Render implements GLSurfaceView.Renderer {
     private GammaProgramES3 mGammaProgramES3;
     private MRTProgram mMRTProgram;
     private TestMRTProgram mTestMRTProgram;
+    private WhiteProgram mWhiteProgram;
+    private SkinProgram mSkinProgram;
+    private SharpProgram mSharpProgram;
 
     //frame buffer
     private int[] mFrameBuffer = new int[1];
     private int[] mFrameTexture = new int[1];
+
+    //frame buffer1
+    private int[] mFrameBuffer1 = new int[1];
+    private int[] mFrameTexture1 = new int[1];
 
     //multiple render target
     private int[] mFrameBufferMRT = new int[1];
     private int[] mFrameTextureMRT = new int[2];
 
     //set var from activity seekbar
-    private float mWhiten;
-    private float mYuhua;
-    private float mSharp;
+    private float m_whiteLevel = -0.5f;
+    private float m_softSkinLevel = 3.51f;
+    private float m_sharpenLevel = 0.35f;
+
+    private int textureSurfaceWidth;
+    private int textureSurfaceHeight;
 
     public void init(GLSurfaceView camera2View,CameraV2 cameraV2,Context context){
         mContex = context;
@@ -104,12 +117,16 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         mPreviewProgram = new PreviewProgram(mContex,"previewVertexShader.glsl","previewFragmentShader.glsl");
 
         mEffectFilter = new EffectFilter();
-        mWhiteBlackProgram = new WhiteBlackProgram(mContex,"blackWhiteEffectVS.glsl","blackWhiteEffectFS.glsl");
-        mGammaProgram = new GammaProgram(mContex,"gammaVS.glsl","gammaFS.glsl");
+        //mWhiteBlackProgram = new WhiteBlackProgram(mContex,"blackWhiteEffectVS.glsl","blackWhiteEffectFS.glsl");
+        //mGammaProgram = new GammaProgram(mContex,"gammaVS.glsl","gammaFS.glsl");
 
-        mGammaProgramES3 = new GammaProgramES3(mContex,"gammaVSes3.0.glsl","gammaFSes3.0.glsl");
-        mMRTProgram = new MRTProgram(mContex,"MRTVS.glsl","MRTFS.glsl");
+        //mGammaProgramES3 = new GammaProgramES3(mContex,"gammaVSes3.0.glsl","gammaFSes3.0.glsl");
+        //mMRTProgram = new MRTProgram(mContex,"MRTVS.glsl","MRTFS.glsl");
         mTestMRTProgram = new TestMRTProgram(mContex,"noEffectVS.glsl","noEffectFS.glsl");
+
+        mSkinProgram = new SkinProgram(mContex,"skinBeautyVS.glsl","skinBeautyFS.glsl");
+        mWhiteProgram = new WhiteProgram(mContex,"whiteBeautyVS.glsl","whiteBeautyFS.glsl");
+        mSharpProgram = new SharpProgram(mContex,"sharpVS.glsl","sharpFS.glsl");
     }
 
     @Override
@@ -121,7 +138,11 @@ public class Camera2Render implements GLSurfaceView.Renderer {
 
         //frame buffer config
         configFrameBuffer(width,height);
+        configFrameBuffer1(width,height);
         configFrameBufferMRT(width,height);
+
+        textureSurfaceWidth = width;
+        textureSurfaceHeight = height;
     }
 
     @Override
@@ -150,13 +171,21 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         glBindFramebuffer(GL_FRAMEBUFFER,mFrameBufferMRT[0]);
         glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        drawMRT();
+        //drawMRT();
+        skinBeauty();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glBindFramebuffer(GL_FRAMEBUFFER,mFrameBuffer1[0]);
+        glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        whiteBeauty();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
         //draw to window
         glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
+        //sharpBeauty();
         //drawWhiteBlack();
         //drawGammaES3();
         drawTestMRT();
@@ -186,9 +215,28 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         mEffectFilter.drawES3();
     }
 
+    private void skinBeauty(){
+        mSkinProgram.useProgram();
+        mSkinProgram.setUniforms(mMVPMatrix,mFrameTexture[0],textureSurfaceWidth,textureSurfaceHeight);
+        mEffectFilter.drawES3();
+    }
+
+    private void whiteBeauty(){
+        mWhiteProgram.useProgram();
+        mWhiteProgram.setUniforms(mMVPMatrix,mFrameTextureMRT[0],mFrameTextureMRT[1],mFrameTexture[0],textureSurfaceWidth,textureSurfaceHeight);
+        mEffectFilter.drawES3();
+    }
+
+    private void sharpBeauty()
+    {
+        mSharpProgram.useProgram();
+        mSharpProgram.setUniforms(mMVPMatrix,mFrameTexture1[0],mFrameTexture[0],m_softSkinLevel,m_sharpenLevel,m_whiteLevel);
+        mEffectFilter.drawES3();
+    }
+
     private void drawTestMRT(){
         mTestMRTProgram.useProgram();
-        mTestMRTProgram.setUniforms(mFrameTextureMRT[1]);
+        mTestMRTProgram.setUniforms(mFrameTexture[0]);
         mEffectFilter.drawES3();
     }
 
@@ -237,6 +285,27 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
+    private void configFrameBuffer1(int w,int h){
+        glGenFramebuffers(1,mFrameBuffer1,0);
+        glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer1[0]);
+
+        glGenTextures(1,mFrameTexture1,0);
+        glBindTexture(GL_TEXTURE_2D, mFrameTexture1[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, null);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFrameTexture1[0], 0);
+
+        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        {
+            Log.e(TAG,"Frame buffer1 config fail.");
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
     private void configFrameBufferMRT(int w,int h){
         glGenFramebuffers(1,mFrameBufferMRT,0);
         glBindFramebuffer(GL_FRAMEBUFFER,mFrameBufferMRT[0]);
@@ -267,14 +336,14 @@ public class Camera2Render implements GLSurfaceView.Renderer {
     }
 
     public void setWhiteParam(float val){
-        mWhiten = val;
+        m_whiteLevel = val;
     }
 
     public void setYuHuaParam(float val){
-        mYuhua = val;
+        m_softSkinLevel = val;
     }
 
     public void setSharpParam(float val){
-        mSharp = val;
+        m_sharpenLevel = val;
     }
 }

@@ -9,7 +9,7 @@ uniform sampler2D uTextureUnit2;
 
 uniform float width;
 uniform float height;
-uniform float step;
+uniform float steps;
 uniform float radius;
 uniform float eps;
 
@@ -18,15 +18,15 @@ out vec4 FragColor;
 void main()
 {
     float uBoxWidth = radius / width;
-    float uXStep  = step / width;
+    float uXStep  = steps / width;
     vec4 sum = vec4(0.0, 0.0, 0.0, 0.0);
     vec4 sumII = vec4(0.0, 0.0, 0.0, 0.0);
     float halfW = uBoxWidth / 2.0;
     int num = 0;
     for (float i = -halfW; i < halfW; i += uXStep)
     {
-        vec4 pixel = texture(uTextureUnit0, oTextureCoordinates + vec2(i, 0), 1/width, 1/height);
-        vec4 pixel2 = texture(uTextureUnit1, oTextureCoordinates + vec2(i, 0), 1/width, 1/height);
+        vec4 pixel = texture(uTextureUnit0, oTextureCoordinates + vec2(i, 0));
+        vec4 pixel2 = texture(uTextureUnit1, oTextureCoordinates + vec2(i, 0));
         sum += pixel;
         sumII += pixel2;
         num ++;

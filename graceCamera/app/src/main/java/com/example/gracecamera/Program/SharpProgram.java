@@ -15,6 +15,7 @@ import static android.opengl.GLES20.glUniform1f;
 import static android.opengl.GLES20.glUniform1i;
 import static android.opengl.GLES20.glUniformMatrix4fv;
 import static android.opengl.GLES20.glUseProgram;
+import static com.example.gracecamera.Util.LoggerConfig.checkGlError;
 
 /**
  * Created by 123 on 2017/11/22.
@@ -48,21 +49,32 @@ public class SharpProgram {
 
     public void setUniforms(float[] matrix, int textureId1,int textureId2,float skin,float sharp,float white) {
         glUniformMatrix4fv(uMVPMatrixLocation, 1, false, matrix, 0);
+        checkGlError("glUniformMatrix4fv(uMVPMatrixLocation, 1, false, matrix, 0);");
 
         glUniform1f(softSkinLocation, skin);
+        checkGlError("glUniform1f(softSkinLocation, skin);");
         glUniform1f(sharpnessLocation, sharp);
+        checkGlError(" glUniform1f(sharpnessLocation, sharp);");
         glUniform1f(whitenessLocation, white);
+        checkGlError(" glUniform1f(whitenessLocation, white);");
 
         glActiveTexture(GL_TEXTURE0);
+        checkGlError(" glActiveTexture(GL_TEXTURE0);");
         glBindTexture(GL_TEXTURE_2D, textureId1);
+        checkGlError("   glBindTexture(GL_TEXTURE_2D, textureId1);");
         glUniform1i(uTextureUnit0Location, 0);
+        checkGlError("     glUniform1i(uTextureUnit0Location, 0);");
 
         glActiveTexture(GL_TEXTURE1);
+        checkGlError("glActiveTexture(GL_TEXTURE1);");
         glBindTexture(GL_TEXTURE_2D, textureId2);
+        checkGlError(" glBindTexture(GL_TEXTURE_2D, textureId2);");
         glUniform1i(uTextureUnit1Location, 1);
+        checkGlError("  glUniform1i(uTextureUnit1Location, 1);");
     }
 
     public void useProgram(){
         glUseProgram(mProgram);
+        checkGlError("glUseProgram(mProgram)");
     }
 }

@@ -96,7 +96,7 @@ public class CameraV2 {
                 }
             });
         }
-        return sizeMap[0];
+        return sizeMap[1];
     }
 
     public boolean openCamera(){
@@ -142,6 +142,7 @@ public class CameraV2 {
 
     public void startPreview(){
         mSurfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(),mPreviewSize.getHeight());
+
         Surface surface = new Surface(mSurfaceTexture);
         try{
             mCaptureRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);

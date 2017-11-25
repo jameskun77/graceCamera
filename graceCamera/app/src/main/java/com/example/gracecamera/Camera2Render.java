@@ -185,10 +185,10 @@ public class Camera2Render implements GLSurfaceView.Renderer {
         //draw to window
         glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        //sharpBeauty();
+        sharpBeauty();
         //drawWhiteBlack();
         //drawGammaES3();
-        drawTestMRT();
+        //drawTestMRT();
     }
 
     private void drawPreview(){

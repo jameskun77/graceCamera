@@ -7,11 +7,14 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
+import static android.opengl.GLES20.GL_FALSE;
 import static android.opengl.GLES20.GL_FLOAT;
 import static android.opengl.GLES20.GL_TRIANGLES;
 import static android.opengl.GLES20.GL_UNSIGNED_SHORT;
 import static android.opengl.GLES20.glDrawElements;
+import static android.opengl.GLES20.glEnableVertexAttribArray;
 import static android.opengl.GLES20.glVertexAttribPointer;
+import static com.example.gracecamera.Util.LoggerConfig.checkGlError;
 
 /**
  * Created by Jameskun on 2017/11/20.
@@ -64,11 +67,16 @@ public class EffectFilter {
     {
         //use es3.0
         vertexBuffer.position(0);
+        glEnableVertexAttribArray(0);
         glVertexAttribPointer(0,3,GL_FLOAT,false,vertexStride,vertexBuffer);
+        checkGlError("glVertexAttribPointer(0,3,GL_FLOAT,false,vertexStride,vertexBuffer)");
 
         vertexBuffer.position(3);
+        glEnableVertexAttribArray(1);
         glVertexAttribPointer(1,2,GL_FLOAT,false,vertexStride,vertexBuffer);
+        checkGlError("glVertexAttribPointer(1,2,GL_FLOAT,false,vertexStride,vertexBuffer)");
 
         glDrawElements(GL_TRIANGLES, drawOrder.length, GL_UNSIGNED_SHORT, drawListBuffer);
+        checkGlError("glDrawElements(GL_TRIANGLES, drawOrder.length, GL_UNSIGNED_SHORT, drawListBuffer)");
     }
 }

@@ -29,11 +29,11 @@
                 android:text="@string/beauty_param1"/>
 
             <SeekBar
-                android:id="@+id/seekBar1"
+                android:id="@+id/seekBarSkin"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:max="140" />
+                android:max="100" />
         </LinearLayout>
 
         <LinearLayout
@@ -52,11 +52,11 @@
                 android:text="@string/beauty_param2"/>
 
             <SeekBar
-                android:id="@+id/seekBar2"
+                android:id="@+id/seekBarWhite"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:max="140" />
+                android:max="100" />
 
         </LinearLayout>
 
@@ -76,11 +76,11 @@
                 android:text="@string/beauty_param3"/>
 
             <SeekBar
-                android:id="@+id/seekBar3"
+                android:id="@+id/seekBarSharp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:max="140"/>
+                android:max="100"/>
 
         </LinearLayout>
 

@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">GraceCamera</string>
-    <string name="beauty_param1">美白</string>
-    <string name="beauty_param2">羽化</string>
+    <string name="beauty_param1">磨皮</string>
+    <string name="beauty_param2">美白</string>
     <string name="beauty_param3">清晰</string>
 </resources>

@@ -43,9 +43,9 @@ public class CameraActivity extends Activity implements SeekBar.OnSeekBarChangeL
 
         setContentView(R.layout.activity_main);
         mGLSurfaceView = (GLSurfaceView)findViewById(R.id.glsurfaceview) ;
-        ((SeekBar) findViewById(R.id.seekBar1)).setOnSeekBarChangeListener(this);
-        ((SeekBar) findViewById(R.id.seekBar2)).setOnSeekBarChangeListener(this);
-        ((SeekBar) findViewById(R.id.seekBar3)).setOnSeekBarChangeListener(this);
+        ((SeekBar) findViewById(R.id.seekBarSkin)).setOnSeekBarChangeListener(this);
+        ((SeekBar) findViewById(R.id.seekBarWhite)).setOnSeekBarChangeListener(this);
+        ((SeekBar) findViewById(R.id.seekBarSharp)).setOnSeekBarChangeListener(this);
 
         //check system support es2.0
         final ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -98,24 +98,21 @@ public class CameraActivity extends Activity implements SeekBar.OnSeekBarChangeL
                                   final boolean fromUser){
         //Log.i(TAG,"onProgressChanged");
         switch (seekBar.getId()){
-            case R.id.seekBar1:
+            case R.id.seekBarSkin:
             {
-                Log.i(TAG,"bar1 onProgressChanged" + progress);
-                float white = -1.0f + (progress + 19)/30.0f;
-                mCameraRender.setWhiteParam(white );
-            }
-            break;
-            case R.id.seekBar2:
-            {
-                Log.i(TAG,"bar2 onProgressChanged" + progress);
-                float yuhua = 1.01f + (progress + 19)/40.0f;
+                float yuhua = 1.01f + progress/40.0f;
                 mCameraRender.setYuHuaParam(yuhua);
             }
             break;
-            case R.id.seekBar3:
+            case R.id.seekBarWhite:
             {
-                Log.i(TAG,"bar3 onProgressChanged" + progress);
-                float sharp = 0.05f + (float)(progress + 19) / 100.0f * 0.60f;
+                float white = -1.0f + progress/30.0f;
+                mCameraRender.setWhiteParam(white );
+            }
+            break;
+            case R.id.seekBarSharp:
+            {
+                float sharp = 0.05f + (float)(progress)/ 100.0f * 0.60f;
                 mCameraRender.setSharpParam(sharp);
             }
             break;

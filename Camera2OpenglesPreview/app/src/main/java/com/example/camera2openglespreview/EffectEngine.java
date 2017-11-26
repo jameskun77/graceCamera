@@ -29,6 +29,7 @@ import static android.opengl.GLES20.glUniform1i;
 import static android.opengl.GLES20.glUniformMatrix4fv;
 import static android.opengl.GLES20.glUseProgram;
 import static android.opengl.GLES20.glVertexAttribPointer;
+import static com.example.camera2openglespreview.Utils.checkGlError;
 
 /**
  * Created by Jameskun on 2017/11/17.

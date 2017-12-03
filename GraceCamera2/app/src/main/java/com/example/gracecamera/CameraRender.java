@@ -128,8 +128,8 @@ public class CameraRender implements GLSurfaceView.Renderer {
 
         //frame buffer config
         configFrameBuffer(width,height);
-        configFrameBuffer1(width,height);
-        configFrameBufferMRT(width,height);
+        configFrameBuffer1(540,960);
+        configFrameBufferMRT(540,960);
 
         textureSurfaceWidth = width;
         textureSurfaceHeight = height;
@@ -159,18 +159,21 @@ public class CameraRender implements GLSurfaceView.Renderer {
 
         //draw MRT
         glBindFramebuffer(GL_FRAMEBUFFER,mFrameBufferMRT[0]);
+        glViewport(0, 0, 540, 960);
         glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         skinBeauty();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glBindFramebuffer(GL_FRAMEBUFFER,mFrameBuffer1[0]);
+        glViewport(0, 0, 540, 960);
         glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         whiteBeauty();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         //draw to window
+        glViewport(0, 0, textureSurfaceWidth, textureSurfaceHeight);
         glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         sharpBeauty();
@@ -196,7 +199,7 @@ public class CameraRender implements GLSurfaceView.Renderer {
 
     private void whiteBeauty(){
         mWhiteProgram.useProgram();
-        mWhiteProgram.setUniforms(mMVPMatrix,mFrameTextureMRT[0],mFrameTextureMRT[1],mFrameTexture[0],textureSurfaceWidth,textureSurfaceHeight);
+        mWhiteProgram.setUniforms(mMVPMatrix,mFrameTextureMRT[0],mFrameTextureMRT[1],mFrameTexture[0],540,960);
         mRectangle.draw();
     }
 

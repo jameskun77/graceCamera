@@ -29,7 +29,7 @@ public class CameraPreviewProgram {
     private final int aTexCoordLocation;
 
     //Uniform
-    private final int uMVPMatrixLocation;
+    //private final int uMVPMatrixLocation;
     private final int uTextureMatrixLocation;
     private final int uTextureSampler;
 
@@ -47,8 +47,8 @@ public class CameraPreviewProgram {
         aTexCoordLocation = glGetAttribLocation(mProgram,"aTextureCoordinate");
         checkGlError("glGetAttribLocation aTextureCoordinate");
 
-        uMVPMatrixLocation = glGetUniformLocation(mProgram,"uMVPMatrix");
-        checkGlError("glGetUniformLocation uMVPMatrix");
+        //uMVPMatrixLocation = glGetUniformLocation(mProgram,"uMVPMatrix");
+        //checkGlError("glGetUniformLocation uMVPMatrix");
 
         uTextureMatrixLocation = glGetUniformLocation(mProgram,"uTextureMatrix");
         checkGlError("glGetUniformLocation uTextureMatrix");
@@ -59,8 +59,8 @@ public class CameraPreviewProgram {
 
     public void setUniform(float[] mvpMatrix,float[] textureMatrix,int textureId){
 
-        glUniformMatrix4fv(uMVPMatrixLocation, 1, false, mvpMatrix, 0);
-        checkGlError("glUniformMatrix4fv uMVPMatrixLocation");
+        //glUniformMatrix4fv(uMVPMatrixLocation, 1, false, mvpMatrix, 0);
+        //checkGlError("glUniformMatrix4fv uMVPMatrixLocation");
 
         glUniformMatrix4fv(uTextureMatrixLocation, 1, false, textureMatrix, 0);
         checkGlError("glUniformMatrix4fv uTextureMatrixLocation");
